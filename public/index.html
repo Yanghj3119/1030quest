@@ -160,7 +160,7 @@ async function getJson(url, ms){
     return body;
   } finally { clearTimeout(t); }
 }
-try { DATA = await getJson('/api/places', 20000); }
+try { DATA = await getJson('/api/places', 30000); }
 catch (e) {
   apiError = e.name === 'AbortError' ? '응답 시간이 초과되었어요' : e.message;
   try { DATA = await getJson('/data/step1-places.json', 10000); practiceMode = true; }
