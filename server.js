@@ -46,7 +46,7 @@ http.createServer(async (req, res) => {
       }));
     }
     // 정적 파일 (public/)
-    const rel = pathname === '/' ? 'family.html' : decodeURIComponent(pathname).replace(/^\/+/, '');
+    const rel = pathname === '/' ? 'index.html' : decodeURIComponent(pathname).replace(/^\/+/, '');
     const file = path.resolve(ROOT, 'public', rel);
     if (!file.startsWith(path.join(ROOT, 'public') + path.sep)) return send(res, 403, '{"error":"forbidden"}');
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return send(res, 404, '{"error":"not found"}');

@@ -1,5 +1,4 @@
 {
   "outputDirectory": "public",
-  "rewrites": [{ "source": "/", "destination": "/family.html" }],
   "functions": { "api/places.js": { "maxDuration": 30 } }
 }

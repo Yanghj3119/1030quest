@@ -3,140 +3,159 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>제주 역사문화 정보 조회</title>
+<title>제주 가족 역사 탐방</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-:root{--bg:#f5f7f6;--card:#fff;--ink:#1d2b27;--sub:#5d6f69;--line:#dbe3e0;--accent:#0e7c66;--accent-soft:#e1f2ee;--hi:#e8590c}
-@media (prefers-color-scheme:dark){:root{--bg:#121816;--card:#1a2320;--ink:#e6efec;--sub:#9bb0a9;--line:#2c3a36;--accent:#3cc4a6;--accent-soft:#1d3a33;--hi:#ff9a52}}
+:root{--bg:#fff8ee;--card:#fff;--ink:#3a2e22;--sub:#7a6a58;--line:#f0dfc8;--accent:#e8743b;--accent2:#2f9e8f;--soft:#ffe9d6;--soft2:#dff3ef;--gold:#f5b301}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1812;--card:#272018;--ink:#f3e8d8;--sub:#bba98f;--line:#3c3226;--accent:#ff9158;--accent2:#4fc4b4;--soft:#3b2a1d;--soft2:#1c3330;--gold:#ffd04a}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;line-height:1.5}
-header{padding:20px 24px 8px}
-h1{margin:0;font-size:22px}
-header p{margin:4px 0 0;color:var(--sub);font-size:13px}
-.wrap{display:grid;grid-template-columns:minmax(0,1fr) 520px;gap:16px;padding:12px 24px 32px;align-items:start}
-@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px 16px 24px}header{padding:16px 16px 4px}}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:10px}
-.filters{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin-bottom:12px}
-.filters input,.filters select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
-.filters input{flex:1 1 220px;min-width:0}
-.filters button{font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
-.count{padding:0 4px 8px;font-size:13px;color:var(--sub)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:12px;color:var(--sub);cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0;background:var(--card)}
-tbody tr{cursor:pointer}
-tbody tr:hover,tbody tr.on{background:var(--accent-soft)}
-.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
-.addr{color:var(--sub);font-size:13px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;max-height:72vh;overflow:auto;padding:2px}
-.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 12px 10px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
-.card:hover,.card.on{border-color:var(--accent);background:var(--accent-soft)}
-.card h3{margin:0;font-size:15px;padding-right:34px}
-.card .ttl{font-size:13px;font-weight:600}
-.card .snip{font-size:12.5px;color:var(--sub);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.fav{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:99px;font:inherit;font-size:13px;padding:2px 10px;cursor:pointer;white-space:nowrap}
-.fav.on{background:var(--hi);border-color:var(--hi);color:#fff}
-.card .fav{position:absolute;top:10px;right:10px;padding:2px 8px;font-size:15px;line-height:1.3}
-.course{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
-.course h2{display:flex;justify-content:space-between;align-items:center}
-.course ol{list-style:none;margin:6px 0;padding:0;max-height:210px;overflow:auto}
-.course li{display:flex;align-items:center;gap:6px;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
-.course li .no{flex:none;width:20px;height:20px;border-radius:50%;background:var(--hi);color:#fff;font-size:11px;display:grid;place-items:center}
-.course li .nm{flex:1;min-width:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.course li button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:5px;font-size:11px;padding:1px 6px;cursor:pointer}
-.numpin{background:var(--hi);color:#fff;border:2px solid #fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-weight:700;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.filters label{font-size:13px;display:flex;align-items:center;gap:4px;color:var(--ink)}
-.empty{padding:32px;text-align:center;color:var(--sub)}
-.mapbox{padding:12px;position:sticky;top:12px}
-.mapbox h2{margin:0 0 8px;font-size:14px}
-#lmap{height:520px;border-radius:8px;z-index:0}
-.pop h3{margin:0 0 2px;font-size:15px}.pop p{margin:4px 0;font-size:12.5px;line-height:1.45}
-.pop button{font:inherit;font-size:12px;padding:4px 10px;border:0;border-radius:6px;background:var(--accent);color:#fff;cursor:pointer}
-.leaflet-popup-content{color:#1d2b27}
-svg{width:100%;height:auto;display:block;background:var(--accent-soft);border-radius:8px}
-svg circle{cursor:pointer}
-.legend{font-size:12px;color:var(--sub);margin-top:6px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;line-height:1.6}
+nav{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);display:flex;gap:4px;padding:8px 16px;overflow:auto;align-items:center}
+nav b{margin-right:auto;white-space:nowrap}
+nav a{white-space:nowrap;text-decoration:none;color:var(--ink);font-size:14px;padding:6px 12px;border-radius:99px}
+nav a:hover{background:var(--soft)}
+.hero{padding:36px 20px 28px;text-align:center;background:linear-gradient(160deg,var(--soft),var(--soft2))}
+.hero h1{margin:0;font-size:clamp(26px,5vw,40px)}
+.hero p{margin:8px auto 0;max-width:560px;color:var(--sub)}
+.steps{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:18px}
+.steps span{background:var(--card);border-radius:99px;padding:6px 14px;font-size:14px;border:1px solid var(--line)}
+section{max-width:1100px;margin:0 auto;padding:28px 16px}
+h2{margin:0 0 4px;font-size:22px}
+.lead{margin:0 0 14px;color:var(--sub);font-size:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.opts{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.opts label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--sub)}
+select,input[type=search]{font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.btn{font:inherit;font-size:15px;font-weight:700;border:0;border-radius:10px;padding:10px 18px;background:var(--accent);color:#fff;cursor:pointer}
+.btn.alt{background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:500}
+.btn.sm{font-size:13px;padding:5px 11px;border-radius:8px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;margin-top:16px;align-items:start}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+#map{height:480px;border-radius:12px;z-index:0}
+.sum{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.sum span{background:var(--soft2);border-radius:99px;padding:3px 12px;font-size:13px}
+ol.course{list-style:none;margin:0;padding:0}
+ol.course li{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);align-items:flex-start}
+.no{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.leg{font-size:12px;color:var(--sub)}
+.go{flex:1;min-width:0}
+.go b{cursor:pointer}
+.go small{display:block;color:var(--sub)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;position:relative}
+.card h3{margin:0;font-size:16px;padding-right:44px}
+.card p{margin:0;font-size:13.5px;color:var(--sub)}
+.theme{display:inline-block;font-size:12px;padding:1px 9px;border-radius:99px;background:var(--soft);color:var(--accent);align-self:flex-start}
+.stamp{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:2px dashed var(--line);background:var(--card);cursor:pointer;font-size:16px}
+.stamp.on{background:var(--gold);border:2px solid var(--gold);color:#fff}
+.row{display:flex;gap:6px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
+.bar{height:14px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--gold));width:0;transition:width .4s}
+.badges{display:flex;flex-wrap:wrap;gap:10px}
+.badge{padding:8px 14px;border-radius:12px;background:var(--line);color:var(--sub);font-size:14px}
+.badge.on{background:var(--gold);color:#3a2e22;font-weight:700}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.tips .box h3{margin:0 0 4px;font-size:15px}.tips .box p{margin:0;font-size:13.5px;color:var(--sub)}
+.numpin{background:var(--accent);color:#fff;border:2px solid #fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-weight:700;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.leaflet-popup-content{color:#3a2e22}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
 .modal.show{display:flex}
-.sheet{background:var(--card);border-radius:12px;max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:22px}
-.sheet h2{margin:0 0 4px;font-size:20px}
-.sheet .close{float:right;font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
-dl{display:grid;grid-template-columns:90px 1fr;gap:6px 12px;margin:14px 0;font-size:14px}
-dt{color:var(--sub)}dd{margin:0;word-break:break-word}
-.body{white-space:pre-wrap;font-size:14px;background:var(--bg);padding:12px;border-radius:8px;margin-top:6px}
+.sheet{background:var(--card);border-radius:16px;max-width:680px;width:100%;max-height:92vh;overflow:auto;padding:22px}
+.sheet h2{margin-bottom:6px}
+.sheet h4{margin:16px 0 4px;font-size:15px}
+.sheet .read{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:15px}
+.sheet ul{margin:4px 0;padding-left:20px}
+.sheet details{margin-top:12px;font-size:14px}
+.sheet details div{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:10px;margin-top:6px}
+.quiet{background:#fff3cd;color:#5c4400;border-radius:10px;padding:8px 12px;font-size:13.5px;margin-top:10px}
 [hidden]{display:none!important}
-.tabs{display:none}
-@media (max-width:900px){
-  .tabs{display:flex;position:sticky;top:0;z-index:30;gap:6px;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
-  .tabs button{flex:1;font:inherit;font-size:15px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
-  .tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
-  body[data-tab="list"] aside{display:none}
-  body[data-tab="map"] main{display:none}
-  .mapbox{position:static}
-  #lmap{height:60vh}
-}
-.pin{display:block;width:18px;height:18px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
-.pinlegend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.pinlegend button{font:inherit;font-size:12px;display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--ink);cursor:pointer}
-.pinlegend button.on{border-color:var(--accent);background:var(--accent-soft)}
-.pinlegend i{width:10px;height:10px;border-radius:50%;display:inline-block}
-.guide{margin:0 24px 4px;padding:12px 16px;border-color:var(--accent);background:var(--accent-soft);font-size:14px}
-.guide ol{margin:6px 0;padding-left:20px}
-.guide button{font:inherit;font-size:13px;padding:4px 12px;border:1px solid var(--accent);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
-header .help{font:inherit;font-size:12px;margin-left:6px;padding:1px 9px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--sub);cursor:pointer}
-@media (max-width:900px){.guide{margin:0 16px 4px}}
 mark{background:#ffe066;color:#222;border-radius:3px;padding:0 1px}
-.dist{font-size:12px;color:var(--accent);font-weight:600}
-.card .more{margin-top:auto;align-self:flex-start;font:inherit;font-size:12.5px;padding:3px 10px;border:1px solid var(--accent);border-radius:99px;background:transparent;color:var(--accent);cursor:pointer}
-.card .more:hover{background:var(--accent);color:#fff}
-.chead{display:flex;gap:4px;flex-wrap:wrap}
-.empty button{font:inherit;margin-top:8px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
-a{color:var(--accent)}
+.dist{font-size:12px;color:var(--accent2);font-weight:700}
+.pinlegend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pinlegend button{font:inherit;font-size:12px;display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--ink);cursor:pointer}
+.pinlegend button.on{border-color:var(--accent);background:var(--soft)}
+.pinlegend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ctl .btn{font-size:13px;padding:5px 11px;border-radius:8px}
+.mv{flex:none;display:flex;flex-direction:column;gap:2px}
+.mv button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:5px;font-size:10px;line-height:1;padding:3px 6px;cursor:pointer}
+.mv button:disabled{opacity:.35;cursor:default}
+.emptybox{grid-column:1/-1;text-align:center;color:var(--sub);padding:24px 8px}
+a{color:var(--accent2)}
+footer{text-align:center;color:var(--sub);font-size:12.5px;padding:20px 16px 40px}
+@media print{nav,.hero,#browse,#stamps,#tips,.noprint,footer{display:none!important}#map{height:300px}section{padding:8px}}
 </style>
 </head>
-<body data-tab="list">
-<header>
-  <h1>제주 역사문화 정보 조회</h1>
-  <p>위치정보 <span id="nLoc"></span>건 + 일반정보 <span id="nGen"></span>건 · 데이터 기준일 2022-12-09 · 카드를 누르면 지도에서 위치가 보이고, "상세 보기"를 누르면 자세한 내용을 볼 수 있어요 <button class="help" id="showGuide">사용법</button></p>
-</header>
-<div class="panel guide" id="guide" hidden>
-  <b>👋 처음이신가요? 이렇게 써 보세요</b>
-  <ol>
-    <li>위쪽 검색창과 분류·지역 선택으로 가고 싶은 장소를 찾아요.</li>
-    <li>카드의 <b>♡</b>를 눌러 찜하면 <b>나만의 답사 코스</b>가 지도에 번호와 선으로 그려져요.</li>
-    <li>카드의 <b>상세 보기</b>나 지도 핀을 누르면 자세한 설명이 열려요.</li>
-  </ol>
-  <button id="closeGuide">알겠어요, 닫기</button>
+<body>
+<nav>
+  <b>🏯 제주 가족 역사 탐방</b>
+  <a href="#planner">코스 만들기</a><a href="#browse">장소 둘러보기</a><a href="#stamps">스탬프</a><a href="#tips">출발 전 체크</a>
+</nav>
+
+<div class="hero">
+  <h1>우리 가족 제주 역사 탐방 🌋</h1>
+  <p>제주도 역사·문화 장소 <span id="total"></span>곳 중에서 가까운 곳끼리 묶어 하루 나들이 코스를 짜 드려요. 다녀온 곳엔 스탬프를 찍어 보세요!</p>
+  <div class="steps"><span>① 지역·테마 고르기</span><span>② 코스 만들기</span><span>③ 함께 읽고 이야기하기</span><span>④ 스탬프 찍기</span></div>
 </div>
-<div class="tabs" id="tabs"><button data-tab="list" class="on">📋 목록</button><button data-tab="map">🗺️ 지도·코스</button></div>
-<div class="wrap">
-  <main>
-    <div class="panel filters">
-      <input id="q" type="search" placeholder="장소명, 제목, 주소, 주제, 내용 검색">
-      <select id="fCat"></select>
-      <select id="fDir"></select>
-      <select id="fRegion"></select>
-      <select id="sort"><option value="name">이름순</option><option value="cat">분류순</option><option value="dir1">디렉토리순</option><option value="addr">주소순</option><option value="near">내 위치에서 가까운 순</option></select>
-      <label><input type="checkbox" id="favOnly"> 찜만 보기</label>
-      <button id="reset">초기화</button>
+
+<section id="planner">
+  <h2>🗺️ 오늘의 나들이 코스</h2>
+  <p class="lead">옵션을 고르고 버튼을 누르면 가까운 장소끼리 이어 드려요. 마음에 안 들면 "다른 코스"를 눌러 보세요.</p>
+  <div class="box opts">
+    <label>어디로 갈까요?<select id="oRegion"><option value="">제주 전체</option><option>제주시</option><option>서귀포시</option></select></label>
+    <label>어떤 이야기가 좋아요?<select id="oTheme"></select></label>
+    <label>몇 곳 둘러볼까요?<select id="oCount"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+    <label>아이 나이<select id="oAge"><option value="">상관없어요</option><option value="small">유아·저학년 (짧고 쉬운 곳)</option><option value="big">고학년 (이야기가 풍부한 곳)</option></select></label>
+    <button class="btn" id="make">코스 만들기</button>
+    <button class="btn alt" id="again">다른 코스</button>
+  </div>
+  <div class="grid2">
+    <div class="box" id="coursePanel"><p class="leg">위에서 "코스 만들기"를 눌러 주세요.</p></div>
+    <div>
+      <div id="map"></div>
+      <div class="pinlegend" id="pinLegend" title="누르면 그 테마만 보여요"></div>
+      <div class="leg" id="nomap" hidden>지도를 불러오지 못했어요(인터넷 연결 필요). 코스 목록은 그대로 볼 수 있어요.</div>
     </div>
-    <div class="count" id="count"></div>
-    <div class="cards" id="rows"></div>
-      <div class="empty" id="empty" hidden>검색 결과가 없습니다.</div>
-  </main>
-  <aside class="panel mapbox">
-    <h2>지도 <span class="legend" id="mapinfo"></span></h2>
-    <div id="lmap"></div>
-    <div class="pinlegend" id="pinLegend" title="누르면 그 분류만 보여요"></div>
-    <svg id="map" viewBox="0 0 340 240" hidden></svg>
-    <div class="course">
-      <h2><span>나만의 답사 코스 <span class="legend" id="courseInfo"></span></span><span class="chead"><button class="fav" id="sortCourse" title="가까운 곳끼리 이어지도록 순서를 다시 정해요">가까운 순 정렬</button><button class="fav" id="copyCourse">복사</button><button class="fav" id="clearCourse">비우기</button></span></h2>
-      <ol id="courseList"></ol>
-      <div class="legend" id="courseHint">카드의 ♡ 버튼으로 찜하면 찜한 순서대로 지도에 선이 이어집니다.</div>
-    </div>
-    <div class="legend" id="fallback" hidden>지도 라이브러리를 불러오지 못해(인터넷 연결 필요) 간단한 분포도로 대신 표시합니다.</div>
-  </aside>
-</div>
+  </div>
+</section>
+
+<section id="browse">
+  <h2>🔎 장소 둘러보기</h2>
+  <p class="lead">카드를 눌러 아이와 함께 읽어 보고, 다녀오면 오른쪽 위 도장을 눌러요.</p>
+  <div class="box opts">
+    <label>찾기<input type="search" id="q" placeholder="예: 바다, 무덤, 마을"></label>
+    <label>테마<select id="fTheme"></select></label>
+    <label>지역<select id="fRegion"><option value="">전체</option><option>제주시</option><option>서귀포시</option></select></label>
+    <label>보기<select id="fVisit"><option value="">전체</option><option value="no">아직 안 가 본 곳</option><option value="yes">다녀온 곳</option></select></label>
+    <label>정렬<select id="fSort"><option value="name">이름순</option><option value="near">내 위치에서 가까운 순</option></select></label>
+  </div>
+  <div class="leg" id="count" style="margin-top:8px"></div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section id="stamps">
+  <h2>🏅 우리 가족 스탬프</h2>
+  <div class="box">
+    <div><b id="stampN">0</b> / <span id="stampT"></span>곳 다녀왔어요</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="badges" id="badges"></div>
+    <p class="leg" style="margin:10px 0 0">스탬프는 이 컴퓨터의 브라우저에 저장돼요. <button class="btn alt sm" id="resetStamp">스탬프 모두 지우기</button></p>
+  </div>
+</section>
+
+<section id="tips">
+  <h2>🎒 출발 전 체크</h2>
+  <div class="tips">
+    <div class="box"><h3>🤫 유적에서는</h3><p>무덤·고분 같은 곳은 조용히 둘러보고, 돌이나 유물을 만지거나 옮기지 않아요.</p></div>
+    <div class="box"><h3>🌊 바닷가·오름에서는</h3><p>파도와 바람이 센 날은 물가에 가까이 가지 않고, 미끄럽지 않은 신발을 신어요.</p></div>
+    <div class="box"><h3>🚗 이동할 때</h3><p>코스의 시간은 대략 계산한 값이에요. 아이 컨디션에 맞춰 여유 있게, 쉬는 시간도 넣어요.</p></div>
+    <div class="box"><h3>📞 가기 전에</h3><p>개방 시간과 입장 여부는 장소마다 달라요. 상세 정보의 "원문 보기"나 제주도 누리집에서 확인해 주세요.</p></div>
+  </div>
+  <p style="text-align:center" class="noprint"><button class="btn alt" onclick="window.print()">🖨️ 오늘 코스 인쇄하기</button></p>
+</section>
+
+<footer>출처: 제주특별자치도 제주역사문화 위치정보·일반정보(2022-12-09 기준) · 지도 © OpenStreetMap</footer>
 
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 
@@ -179,23 +198,169 @@ if (practiceMode) {
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const none = v => !v || v === '해당없음';
+const store = {
+  get(k, def){ try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch (e) { return def; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
 
+// ---------- 데이터 가공
+const THEMES = {
+  nature: {label: '🌿 자연과 바다', dirs: ['자연'],
+    qs: ['여기서 어떤 소리와 냄새가 났나요?', '옛날 사람들은 이 자연을 어떻게 이용했을까요?', '우리 동네 자연과 닮은 점, 다른 점은 뭘까요?']},
+  life: {label: '🏠 옛날 사람들의 생활', dirs: ['의식주', '생산기술', '민속공예'],
+    qs: ['옛날에는 무엇을 먹고, 입고, 어떤 집에서 살았을까요?', '지금 우리 생활과 가장 다른 점은 뭘까요?', '직접 해 보고 싶은 옛날 일이 있나요?']},
+  story: {label: '🔮 믿음과 전설 이야기', dirs: ['무속', '민간신앙', '신화/전설', '통과의례'],
+    qs: ['사람들은 왜 이곳에서 소원을 빌었을까요?', '이야기 속 주인공이 되면 어떤 마음일까요?', '오늘 들은 이야기를 가족에게 다시 들려줘 볼까요?']},
+  town: {label: '🏛️ 역사와 마을', dirs: ['사회', '역사', '문화', '관광', '방언', '기타'],
+    qs: ['이곳은 옛날에 어떤 일을 하던 곳이었을까요?', '오래된 것과 새로 생긴 것을 찾아볼까요?', '100년 뒤에는 이곳이 어떻게 변해 있을까요?']}
+};
+const themeOf = d => Object.keys(THEMES).find(k => THEMES[k].dirs.includes(d.dir1)) || 'town';
+const isGrave = d => /분묘|고분|묘$|묘군|무덤|유적/.test(d.name || '') || d.dir2 === '장례';
+
+function clean(s){ return (s || '').replace(/\s+/g, ' ').replace(/\([^)]*\)/g, '').trim(); }
+function oneLine(d){
+  const src = clean(!none(d.abstract) ? d.abstract : d.body);
+  if (!src) return '아직 설명이 없는 장소예요. 직접 가서 살펴볼까요?';
+  const m = src.match(/^.{25,110}?[.다요](?=\s|$)/);
+  return m ? m[0] : src.slice(0, 90) + (src.length > 90 ? '…' : '');
+}
+function longRead(d){
+  const src = clean(!none(d.abstract) ? d.abstract : d.body);
+  if (!src) return '';
+  if (src.length <= 420) return src;
+  const cut = src.slice(0, 420), dot = cut.lastIndexOf('. ');
+  return dot > 120 ? cut.slice(0, dot + 1) : cut + '…';
+}
 DATA.forEach(d => {
   const m = (d.addr || '').match(/(제주시|서귀포시)/);
   d.region = m ? m[1] : '기타';
+  d.theme = themeOf(d);
+  d.line = oneLine(d);
+  d.grave = isGrave(d);
+  d.len = clean(!none(d.abstract) ? d.abstract : d.body).length;
 });
+const byId = id => DATA.find(d => d.id === id);
+$('total').textContent = DATA.length;
 
-$('nLoc').textContent = DATA.filter(d => d.hasLoc).length;
-$('nGen').textContent = DATA.filter(d => d.hasGen).length;
+// ---------- 스탬프
+let visited = store.get('familyVisited', []).filter(id => byId(id));
+const isVisited = id => visited.includes(id);
+function toggleVisit(id){
+  const i = visited.indexOf(id);
+  if (i >= 0) visited.splice(i, 1); else visited.push(id);
+  store.set('familyVisited', visited);
+  renderCards(); renderStamps(); if (curCourse.length) renderCourse();
+}
+function renderStamps(){
+  const n = visited.length, t = DATA.length;
+  $('stampN').textContent = n; $('stampT').textContent = t;
+  $('bar').style.width = (n / t * 100) + '%';
+  const marks = [[1, '🌱 첫 걸음'], [5, '🧭 탐험가'], [10, '🏅 탐방 대장'], [20, '👑 제주 박사'], [40, '🌋 전설의 가족']];
+  $('badges').innerHTML = marks.map(([k, l]) => `<span class="badge ${n >= k ? 'on' : ''}">${l} (${k}곳)</span>`).join('');
+}
 
-const uniq = k => [...new Set(DATA.map(d => d[k]).filter(v => !none(v)))].sort((a, b) => a.localeCompare(b, 'ko'));
-function fill(sel, label, vals){ sel.innerHTML = `<option value="">${label}</option>` + vals.map(v => `<option>${esc(v)}</option>`).join(''); }
-fill($('fCat'), '분류 전체', uniq('cat'));
-fill($('fDir'), '디렉토리 전체', uniq('dir1'));
-fill($('fRegion'), '지역 전체', uniq('region'));
+// ---------- 필터 옵션
+const themeOpts = '<option value="">모든 테마</option>' + Object.entries(THEMES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+$('oTheme').innerHTML = themeOpts; $('fTheme').innerHTML = themeOpts;
 
-let sortKey = 'name', sortDir = 1, selected = null, shown = [], userPos = null, curQ = '';
-const distTo = d => userPos && d.lat ? km(userPos, d) : Infinity;
+// ---------- 지도
+let map = null, layer = null, routeLayer = null;
+const mk = {};
+const THEME_COLOR = {nature: '#2f9e8f', life: '#e8743b', story: '#7048e8', town: '#1c7ed6'};
+$('pinLegend').innerHTML = Object.entries(THEMES).map(([k, v]) => `<button data-theme="${k}"><i style="background:${THEME_COLOR[k]}"></i>${v.label}</button>`).join('');
+$('pinLegend').addEventListener('click', e => {
+  const b = e.target.closest('[data-theme]'); if (!b) return;
+  $('fTheme').value = $('fTheme').value === b.dataset.theme ? '' : b.dataset.theme; renderCards();
+});
+if (window.L){
+  map = L.map('map').setView([33.38, 126.55], 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '&copy; OpenStreetMap'}).addTo(map);
+  layer = L.layerGroup().addTo(map); routeLayer = L.layerGroup().addTo(map);
+  DATA.filter(d => d.lat).forEach(d => {
+    mk[d.id] = L.circleMarker([d.lat, d.lon], {radius: 6, color: '#fff', weight: 1, fillColor: THEME_COLOR[d.theme], fillOpacity: .9})
+      .bindPopup(`<b>${esc(d.name)}</b><br>${esc(d.line)}<br><a href="#" data-open="${esc(d.id)}">아이와 함께 읽기</a>`).addTo(layer);
+  });
+  map.on('popupopen', e => e.popup.getElement().querySelectorAll('[data-open]').forEach(a => a.onclick = ev => { ev.preventDefault(); openDetail(a.dataset.open); }));
+} else { $('map').hidden = true; $('nomap').hidden = false; }
+
+// ---------- 코스 만들기
+const hav = (a, b) => {
+  const R = 6371, r = x => x * Math.PI / 180;
+  const h = Math.sin(r(b.lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lon - a.lon) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+let curCourse = [];
+function makeCourse(){
+  const region = $('oRegion').value, theme = $('oTheme').value, n = +$('oCount').value, age = $('oAge').value;
+  let pool = DATA.filter(d => d.lat && (!region || d.region === region) && (!theme || d.theme === theme));
+  if (age === 'small') pool = pool.filter(d => !d.grave).sort((a, b) => a.len - b.len).slice(0, Math.max(n * 4, Math.ceil(pool.length * .6)));
+  if (age === 'big') pool = pool.filter(d => d.len > 120);
+  if (pool.length < 1){ $('coursePanel').innerHTML = '<p>조건에 맞는 장소가 없어요. 옵션을 바꿔 보세요.</p>'; curCourse = []; drawRoute(); return; }
+  // 아직 안 가 본 곳을 우선, 시작점은 무작위
+  const fresh = pool.filter(d => !isVisited(d.id));
+  const seeds = fresh.length ? fresh : pool;
+  const prev = curCourse[0]?.id;
+  let seed = seeds[Math.floor(Math.random() * seeds.length)];
+  if (seeds.length > 1 && seed.id === prev) seed = seeds[(seeds.indexOf(seed) + 1) % seeds.length];
+  const left = pool.filter(d => d.id !== seed.id).sort((a, b) => (isVisited(a.id) - isVisited(b.id)));
+  const course = [seed];
+  while (course.length < n && left.length){
+    const last = course[course.length - 1];
+    let best = 0;
+    left.forEach((d, i) => { if (hav(last, d) + (isVisited(d.id) ? 6 : 0) < hav(last, left[best]) + (isVisited(left[best].id) ? 6 : 0)) best = i; });
+    course.push(left.splice(best, 1)[0]);
+  }
+  curCourse = course; renderCourse();
+}
+const STAY = 40, KMH = 40, ROAD = 1.4;
+function renderCourse(){
+  store.set('familyCourse', curCourse.map(d => d.id));
+  if (!curCourse.length){
+    $('coursePanel').innerHTML = '<p class="leg">위에서 "코스 만들기"를 누르거나, 장소 카드의 "코스에 넣기"로 직접 만들어 보세요.</p>';
+    drawRoute(); return;
+  }
+  let dist = 0, drive = 0;
+  const legs = curCourse.map((d, i) => {
+    if (!i) return null;
+    const km = hav(curCourse[i - 1], d) * ROAD; dist += km; const m = Math.round(km / KMH * 60); drive += m;
+    return {km, m};
+  });
+  const total = drive + STAY * curCourse.length;
+  const hrs = Math.floor(total / 60), mins = total % 60;
+  $('coursePanel').innerHTML = `
+    <div class="ctl"><button class="btn alt" data-csort title="첫 곳에서 시작해 가까운 곳 순서로 다시 정해요">가까운 순 정렬</button><button class="btn alt" data-ccopy>코스 복사</button><button class="btn alt" data-cclear>비우기</button></div>
+    <div class="sum"><span>📍 ${curCourse.length}곳</span><span>🚗 이동 약 ${dist.toFixed(0)}km (${drive}분)</span><span>⏱️ 전체 약 ${hrs ? hrs + '시간 ' : ''}${mins}분</span></div>
+    <ol class="course">${curCourse.map((d, i) => `
+      <li>
+        <span class="no">${i + 1}</span>
+        <div class="go">
+          ${legs[i] ? `<div class="leg">⬇ 차로 약 ${legs[i].m}분 (${legs[i].km.toFixed(1)}km)</div>` : ''}
+          <b data-open="${esc(d.id)}">${esc(d.name)}</b> ${isVisited(d.id) ? '✅' : ''}
+          <small>${THEMES[d.theme].label} · ${esc(d.addr)}</small>
+          <small>${esc(d.line)}</small>
+        </div>
+        <div class="mv"><button data-cup="${i}" ${i === 0 ? 'disabled' : ''} title="위로">▲</button><button data-cdown="${i}" ${i === curCourse.length - 1 ? 'disabled' : ''} title="아래로">▼</button><button data-cdel="${esc(d.id)}" title="코스에서 빼기">✕</button></div>
+        <button class="stamp ${isVisited(d.id) ? 'on' : ''}" style="position:static;flex:none" data-visit="${esc(d.id)}" title="다녀왔어요">✔</button>
+      </li>`).join('')}</ol>
+    <p class="leg">※ 이동 시간은 직선거리 × 1.4배 / 시속 40km, 장소당 ${STAY}분 머무는 것으로 계산한 대략의 값이에요.</p>`;
+  drawRoute();
+}
+function drawRoute(){
+  if (!map) return;
+  routeLayer.clearLayers();
+  if (!curCourse.length) return;
+  const pts = curCourse.map(d => [d.lat, d.lon]);
+  if (pts.length > 1) L.polyline(pts, {color: '#e8743b', weight: 4, dashArray: '8 6'}).addTo(routeLayer);
+  curCourse.forEach((d, i) => L.marker([d.lat, d.lon], {
+    icon: L.divIcon({className: '', html: `<div class="numpin">${i + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14]}),
+    zIndexOffset: 1000, title: d.name
+  }).on('click', () => openDetail(d.id)).addTo(routeLayer));
+  map.fitBounds(L.latLngBounds(pts).pad(0.25), {maxZoom: 13});
+}
+
+// ---------- 카드 목록
+let userPos = null, curQ = '';
+const distTo = d => userPos && d.lat ? hav(userPos, d) : Infinity;
 // 검색어를 <mark>로 강조 (텍스트는 항상 이스케이프)
 function hl(s){
   s = String(s ?? '');
@@ -205,246 +370,122 @@ function hl(s){
   for (const m of s.matchAll(re)){ out += esc(s.slice(last, m.index)) + '<mark>' + esc(m[0]) + '</mark>'; last = m.index + m[0].length; }
   return out + esc(s.slice(last));
 }
-let favs = [];
-try { favs = JSON.parse(localStorage.getItem('jejuFavs') || '[]').filter(id => DATA.some(d => d.id === id)); } catch (e) {}
-const saveFavs = () => { try { localStorage.setItem('jejuFavs', JSON.stringify(favs)); } catch (e) {} };
-const byId = id => DATA.find(d => d.id === id);
-
-function apply(){
-  const q = $('q').value.trim().toLowerCase();
-  const c = $('fCat').value, di = $('fDir').value, r = $('fRegion').value;
-  shown = DATA.filter(d =>
-    (!c || d.cat === c) && (!di || d.dir1 === di) && (!r || d.region === r) && (!$('favOnly').checked || favs.includes(d.id)) &&
-    (!q || [d.name, d.title, d.sub, d.addr, d.topic, d.body, d.author].join(' ').toLowerCase().includes(q))
-  );
+function renderCards(){
+  const q = $('q').value.trim().toLowerCase(), th = $('fTheme').value, rg = $('fRegion').value, v = $('fVisit').value;
   curQ = q;
-  syncLegend();
-  if (sortKey === 'near' && userPos) shown.sort((a, b) => distTo(a) - distTo(b));
-  else shown.sort((a, b) => String(a[sortKey === 'near' ? 'name' : sortKey] ?? '').localeCompare(String(b[sortKey === 'near' ? 'name' : sortKey] ?? ''), 'ko') * sortDir);
-  render();
-}
-
-function render(){
-  $('count').textContent = `총 ${DATA.length}건 중 ${shown.length}건`;
-  $('empty').hidden = shown.length > 0;
-  if (!shown.length) $('empty').innerHTML = (curQ ? `‘${esc(curQ)}’에 맞는 장소가 없어요.` : '조건에 맞는 장소가 없어요.') + '<br>검색어를 줄이거나 필터를 바꿔 보세요.<br><button id="emptyReset">검색·필터 초기화</button>';
-  $('rows').innerHTML = shown.map(d => {
-    const sn = (d => (d.abstract && !none(d.abstract) ? d.abstract : d.body) || '')(d);
-    return `<div class="card ${d.id === selected ? 'on' : ''}" data-id="${esc(d.id)}">
-      <button class="fav ${favs.includes(d.id) ? 'on' : ''}" data-fav="${esc(d.id)}" title="찜">${favs.includes(d.id) ? '♥' : '♡'}</button>
-      <h3>${hl(d.name)}</h3>
-      <div>${none(d.cat) ? '' : `<span class="tag">${esc(d.cat)}</span> `}<span class="addr">${esc([d.dir1, d.dir2].filter(v => !none(v)).join(' › '))}</span></div>
-      ${none(d.title) ? '' : `<div class="ttl">${hl(d.title)}</div>`}
-      <div class="snip">${hl(sn)}</div>
-      <div class="addr">${hl(d.addr)}</div>
-      ${sortKey === 'near' && userPos && d.lat ? `<div class="dist">📍 내 위치에서 약 ${distTo(d).toFixed(1)}km</div>` : ''}
-      <button class="more" data-open="${esc(d.id)}">상세 보기</button>
-    </div>`;
-  }).join('');
-  drawMap();
-  updatePins();
-}
-
-// 위경도 → SVG 좌표 (제주도 범위)
-const B = {w: 126.14, e: 126.95, s: 33.19, n: 33.57};
-const MW = 340, MH = 240, PAD = 12;
-const px = d => PAD + (d.lon - B.w) / (B.e - B.w) * (MW - 2 * PAD);
-const py = d => PAD + (B.n - d.lat) / (B.n - B.s) * (MH - 2 * PAD);
-let lmap = null, pins = {}, routeLayer = null;
-// 분류별 핀 색상
-const PALETTE = ['#0e7c66', '#d9480f', '#6741d9', '#1971c2', '#c2255c'];
-const CATS = uniq('cat');
-const catColor = c => PALETTE[Math.max(0, CATS.indexOf(c)) % PALETTE.length];
-const pinIcon = c => L.divIcon({className: '', html: `<span class="pin" style="background:${catColor(c)}"></span>`, iconSize: [22, 22], iconAnchor: [11, 22], popupAnchor: [0, -20]});
-$('pinLegend').innerHTML = CATS.map(c => `<button data-cat="${esc(c)}"><i style="background:${catColor(c)}"></i>${esc(c)}</button>`).join('');
-$('pinLegend').addEventListener('click', e => {
-  const b = e.target.closest('[data-cat]'); if (!b) return;
-  $('fCat').value = $('fCat').value === b.dataset.cat ? '' : b.dataset.cat; apply();
-});
-function syncLegend(){ document.querySelectorAll('#pinLegend button').forEach(b => b.classList.toggle('on', b.dataset.cat === $('fCat').value)); }
-if (window.L){
-  lmap = L.map('lmap').setView([33.38, 126.55], 10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '&copy; OpenStreetMap'}).addTo(lmap);
-  const popHtml = id => {
-    const d = byId(id), on = favs.includes(id);
-    const snip = (d.abstract && !none(d.abstract) ? d.abstract : d.body) || '';
-    return `<div class="pop"><h3>${esc(d.name)}</h3>
-      ${none(d.cat) ? '' : `<span class="tag">${esc(d.cat)}</span>`}
-      ${none(d.title) ? '' : `<p><strong>${esc(d.title)}</strong></p>`}
-      <p>${esc(snip.length > 140 ? snip.slice(0, 140) + '…' : snip)}</p>
-      <p class="addr">${esc(d.addr)}</p>
-      <button data-id="${esc(d.id)}">자세히 보기</button> <button class="fav ${on ? 'on' : ''}" data-fav="${esc(d.id)}">${on ? '♥ 찜 해제' : '♡ 찜'}</button></div>`;
-  };
-  DATA.filter(d => d.lat && d.lon).forEach(d => {
-    pins[d.id] = L.marker([d.lat, d.lon], {title: d.name, icon: pinIcon(d.cat)}).bindPopup(() => popHtml(d.id), {maxWidth: 280});
-  });
-  lmap.on('popupopen', e => {
-    e.popup.getElement().querySelectorAll('button').forEach(b => b.onclick = () => {
-      if (b.dataset.fav){ toggleFav(b.dataset.fav); e.popup.setContent(popHtml(b.dataset.fav)); }
-      else openDetail(b.dataset.id);
-    });
-  });
-  routeLayer = L.layerGroup().addTo(lmap);
-
-} else {
-  $('lmap').hidden = true; $('map').hidden = false; $('fallback').hidden = false;
-}
-let firstFit = true;
-function updatePins(){
-  if (!lmap) return;
-  const on = new Set(shown.map(d => d.id));
-  const pts = [];
-  for (const id in pins){
-    if (on.has(id)){ pins[id].addTo(lmap); pts.push(pins[id].getLatLng()); } else pins[id].removeFrom(lmap);
+  const near = $('fSort').value === 'near' && userPos;
+  const list = DATA.filter(d => (!th || d.theme === th) && (!rg || d.region === rg) &&
+    (!v || (v === 'yes') === isVisited(d.id)) &&
+    (!q || [d.name, d.title, d.addr, d.topic, d.line].join(' ').toLowerCase().includes(q)))
+    .sort(near ? (a, b) => distTo(a) - distTo(b) : (a, b) => a.name.localeCompare(b.name, 'ko'));
+  $('count').textContent = `${list.length}곳`;
+  document.querySelectorAll('#pinLegend button').forEach(b => b.classList.toggle('on', b.dataset.theme === th));
+  // 검색·필터에 걸린 장소만 지도에 핀으로 표시
+  if (map){
+    const on = new Set(list.map(d => d.id));
+    for (const id in mk){ if (on.has(id)) layer.addLayer(mk[id]); else layer.removeLayer(mk[id]); }
   }
-  $('mapinfo').textContent = '핀 ' + pts.length + '개';
-  if (pts.length && !firstFit) lmap.fitBounds(L.latLngBounds(pts).pad(0.2), {maxZoom: 14});
-  firstFit = false;
-}
-function km(a, b){
-  const R = 6371, rad = x => x * Math.PI / 180;
-  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-function renderCourse(){
-  const list = favs.map(byId).filter(Boolean);
-  let dist = 0;
-  for (let i = 1; i < list.length; i++) dist += km(list[i - 1], list[i]);
-  $('courseInfo').textContent = list.length ? `${list.length}곳 · 직선거리 약 ${dist.toFixed(1)}km` : '';
-  $('courseHint').hidden = list.length > 0;
-  $('courseList').innerHTML = list.map((d, i) => `<li data-id="${esc(d.id)}">
-    <span class="no">${i + 1}</span><span class="nm" data-go="${esc(d.id)}">${esc(d.name)}</span>
-    <button data-up="${i}" ${i === 0 ? 'disabled' : ''}>▲</button><button data-down="${i}" ${i === list.length - 1 ? 'disabled' : ''}>▼</button><button data-del="${esc(d.id)}">✕</button></li>`).join('');
-  if (!routeLayer) return;
-  routeLayer.clearLayers();
-  const pts = list.map(d => [d.lat, d.lon]);
-  if (pts.length > 1) L.polyline(pts, {color: '#e8590c', weight: 4, opacity: .85, dashArray: '8 6'}).addTo(routeLayer);
-  list.forEach((d, i) => L.marker([d.lat, d.lon], {
-    icon: L.divIcon({className: '', html: `<div class="numpin">${i + 1}</div>`, iconSize: [26, 26], iconAnchor: [13, 13]}),
-    zIndexOffset: 1000, title: `${i + 1}. ${d.name}`
-  }).on('click', () => focusPin(d.id)).addTo(routeLayer));
-}
-function toggleFav(id, keepPopup){
-  const i = favs.indexOf(id);
-  if (i >= 0) favs.splice(i, 1); else favs.push(id);
-  saveFavs(); renderCourse();
-  document.querySelectorAll('[data-fav]').forEach(b => {
-    if (b.closest('.leaflet-popup')) return;
-    const on = favs.includes(b.dataset.fav);
-    b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡';
-  });
-  if ($('favOnly').checked) apply();
-}
-// 모바일 목록/지도 탭 전환
-const setTab = t => {
-  document.body.dataset.tab = t;
-  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
-  if (t === 'map' && lmap) setTimeout(() => lmap.invalidateSize(), 50);
-};
-$('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
-const isMobile = () => matchMedia('(max-width: 900px)').matches;
-function focusPin(id){
-  if (!lmap || !pins[id]) return;
-  if (isMobile() && document.body.dataset.tab !== 'map'){ setTab('map'); lmap.invalidateSize(); }
-  pins[id].addTo(lmap); lmap.setView(pins[id].getLatLng(), Math.max(lmap.getZoom(), 13)); pins[id].openPopup();
+  $('cards').innerHTML = list.map(d => `
+    <div class="card">
+      <button class="stamp ${isVisited(d.id) ? 'on' : ''}" data-visit="${esc(d.id)}" title="다녀왔어요">✔</button>
+      <span class="theme">${THEMES[d.theme].label}</span>
+      <h3>${hl(d.name)}</h3>
+      <p>${hl(d.line)}</p>
+      <p class="leg">${hl(d.addr)}</p>
+      ${near && d.lat ? `<div class="dist">📍 내 위치에서 약 ${distTo(d).toFixed(1)}km</div>` : ''}
+      <div class="row"><button class="btn sm" data-open="${esc(d.id)}">함께 읽기</button><button class="btn alt sm" data-add="${esc(d.id)}">코스에 넣기</button></div>
+    </div>`).join('') || `<div class="emptybox">${curQ ? `‘${esc(curQ)}’에 맞는 장소가 없어요.` : '조건에 맞는 장소가 없어요.'}<br>검색어를 줄이거나 필터를 바꿔 보세요.<br><button class="btn alt sm" id="emptyReset" style="margin-top:8px">검색·필터 초기화</button></div>`;
 }
 
-function drawMap(){
-  const on = new Set(shown.map(d => d.id));
-  const pts = DATA.filter(d => d.lat && d.lon);
-  const dot = d => `<circle data-id="${esc(d.id)}" cx="${px(d).toFixed(1)}" cy="${py(d).toFixed(1)}"`;
-  const gray = pts.filter(d => !on.has(d.id)).map(d => `${dot(d)} r="3" fill="#9aa8a3" opacity=".45"><title>${esc(d.name)}</title></circle>`);
-  const green = pts.filter(d => on.has(d.id) && d.id !== selected).map(d => `${dot(d)} r="4" fill="${catColor(d.cat)}"><title>${esc(d.name)}</title></circle>`);
-  const sel = pts.filter(d => d.id === selected).map(d => `${dot(d)} r="7" fill="var(--hi)" stroke="#fff" stroke-width="2"><title>${esc(d.name)}</title></circle>`);
-  $('map').innerHTML = gray.concat(green, sel).join('');
-}
-
+// ---------- 상세
 function openDetail(id){
-  const d = DATA.find(x => x.id === id); if (!d) return;
-  selected = id; drawMap(); document.querySelectorAll('#rows .card').forEach(r => r.classList.toggle('on', r.dataset.id === id));
-  const row = (k, v) => none(v) ? '' : `<dt>${k}</dt><dd>${esc(v)}</dd>`;
+  const d = byId(id); if (!d) return;
+  const T = THEMES[d.theme];
   const osm = d.lat ? `https://www.openstreetmap.org/?mlat=${d.lat}&mlon=${d.lon}#map=16/${d.lat}/${d.lon}` : '';
+  const read = longRead(d);
   $('sheet').innerHTML = `
-    <button class="close" id="x">닫기 ✕</button>
+    <div style="display:flex;justify-content:space-between;gap:8px"><span class="theme">${T.label}</span><button class="btn alt sm" id="x">닫기 ✕</button></div>
     <h2>${esc(d.name)}</h2>
-    <div>${none(d.cat) ? '' : `<span class="tag">${esc(d.cat)}</span> `}<span class="addr">${esc([d.dir1, d.dir2].filter(v => !none(v)).join(' › '))}</span></div>
-    <dl>
-      ${row('제목', d.title)}${row('부제목', d.sub)}${row('주소', d.addr)}${row('우편번호', d.zip)}
-      ${d.lat ? `<dt>좌표</dt><dd>${d.lat}, ${d.lon} · <a href="${osm}" target="_blank" rel="noopener">지도에서 보기</a></dd>` : ''}
-      ${row('저작자', d.author)}${row('주제', d.topic)}${row('발행자', d.publisher)}${row('발행일', d.date)}${row('자료유형', d.type)}
-      ${d.url ? `<dt>원문</dt><dd><a href="${esc(d.url)}" target="_blank" rel="noopener">제주 디지털 콘텐츠 상세 페이지</a></dd>` : ''}
-    </dl>
-    ${none(d.abstract) ? '' : `<strong>초록</strong><div class="body">${esc(d.abstract)}</div>`}
-    ${none(d.body) ? '' : `<br><strong>내용</strong><div class="body">${esc(d.body)}</div>`}
-    ${none(d.toc) ? '' : `<br><strong>목차</strong><div class="body">${esc(d.toc)}</div>`}
-    ${d.hasGen ? '' : '<p class="addr">※ 일반정보 파일에는 이 장소의 상세 내용이 없습니다.</p>'}`;
+    <div class="leg">${esc(d.addr)}</div>
+    ${d.grave ? '<div class="quiet">🤫 옛 무덤·유적이 있는 곳이에요. 조용히 둘러보고, 만지거나 올라가지 않아요.</div>' : ''}
+    <h4>👀 한 줄로 보면</h4><div class="read">${esc(d.line)}</div>
+    ${!none(d.title) ? `<h4>📖 자료 제목</h4><div>${esc(d.title)}${!none(d.sub) ? ` <span class="leg">(${esc(d.sub)})</span>` : ''}</div>` : ''}
+    ${read ? `<h4>📚 조금 더 읽어 볼까요?</h4><div>${esc(read)}</div>` : ''}
+    <h4>💬 가족이 함께 이야기해 봐요</h4>
+    <ul>${T.qs.map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+    ${!none(d.body) ? `<details><summary>자료 원문 전체 보기 (어른용)</summary><div>${esc(d.body)}</div></details>` : ''}
+    <p style="margin-top:14px">
+      ${osm ? `<a href="${osm}" target="_blank" rel="noopener">🗺️ 지도에서 위치 보기</a> · ` : ''}
+      ${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">원문 보기</a>` : ''}
+    </p>
+    <div class="row"><button class="btn" data-visit="${esc(d.id)}" id="vbtn">${isVisited(d.id) ? '✅ 다녀왔어요 (취소)' : '✔ 다녀왔어요! 스탬프 찍기'}</button>
+    <button class="btn alt" data-add="${esc(d.id)}">코스에 넣기</button></div>`;
   $('modal').classList.add('show');
   $('x').onclick = closeDetail;
 }
-function closeDetail(){ $('modal').classList.remove('show'); }
+const closeDetail = () => $('modal').classList.remove('show');
 
-$('rows').addEventListener('click', e => {
-  const fb = e.target.closest('[data-fav]');
-  if (fb){ toggleFav(fb.dataset.fav); return; }
-  const ob = e.target.closest('[data-open]');
-  if (ob){ openDetail(ob.dataset.open); return; }
-  const c = e.target.closest('.card');
-  if (c){ selected = c.dataset.id; document.querySelectorAll('#rows .card').forEach(x => x.classList.toggle('on', x === c)); lmap ? focusPin(c.dataset.id) : openDetail(c.dataset.id); }
+function addToCourse(id){
+  const d = byId(id); if (!d || !d.lat) return;
+  if (curCourse.some(x => x.id === id)) return;
+  curCourse.push(d); renderCourse();
+  closeDetail(); $('planner').scrollIntoView();
+}
+
+// ---------- 이벤트
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-visit]'); if (v){ toggleVisit(v.dataset.visit); if ($('modal').classList.contains('show')) openDetail(v.dataset.visit); return; }
+  const a = e.target.closest('[data-add]'); if (a){ addToCourse(a.dataset.add); return; }
+  const o = e.target.closest('[data-open]'); if (o && !o.matches('a')) openDetail(o.dataset.open);
 });
-$('courseList').addEventListener('click', e => {
-  const b = e.target.closest('[data-up],[data-down],[data-del],[data-go]'); if (!b) return;
-  if (b.dataset.go) return lmap ? focusPin(b.dataset.go) : openDetail(b.dataset.go);
-  if (b.dataset.del) return toggleFav(b.dataset.del);
-  const i = +(b.dataset.up ?? b.dataset.down), j = b.dataset.up != null ? i - 1 : i + 1;
-  [favs[i], favs[j]] = [favs[j], favs[i]]; saveFavs(); renderCourse();
-});
-$('clearCourse').onclick = () => { if (favs.length && confirm('찜한 코스를 모두 비울까요?')){ favs = []; saveFavs(); renderCourse(); apply(); } };
-$('sort').addEventListener('input', () => {
-  sortKey = $('sort').value;
-  if (sortKey !== 'near' || userPos) return apply();
-  if (!navigator.geolocation){ alert('이 브라우저는 위치 기능을 지원하지 않아요.'); sortKey = 'name'; $('sort').value = 'name'; return apply(); }
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeDetail(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+$('make').onclick = makeCourse; $('again').onclick = makeCourse;
+['q', 'fTheme', 'fRegion', 'fVisit'].forEach(id => $(id).addEventListener('input', renderCards));
+$('fSort').addEventListener('input', () => {
+  if ($('fSort').value !== 'near' || userPos) return renderCards();
+  const back = () => { $('fSort').value = 'name'; renderCards(); };
+  if (!navigator.geolocation){ alert('이 브라우저는 위치 기능을 지원하지 않아요.'); return back(); }
   navigator.geolocation.getCurrentPosition(
-    p => { userPos = {lat: p.coords.latitude, lon: p.coords.longitude}; apply(); },
-    () => { alert('내 위치를 가져오지 못했어요. 브라우저의 위치 권한을 확인해 주세요.'); sortKey = 'name'; $('sort').value = 'name'; apply(); },
+    p => { userPos = {lat: p.coords.latitude, lon: p.coords.longitude}; renderCards(); },
+    () => { alert('내 위치를 가져오지 못했어요. 브라우저의 위치 권한을 확인해 주세요.'); back(); },
     {timeout: 10000}
   );
 });
-// 코스: 첫 곳에서 시작해 가까운 곳 순서로 다시 정렬
-$('sortCourse').onclick = () => {
-  const list = favs.map(byId).filter(Boolean);
-  if (list.length < 3) return;
-  const out = [list.shift()];
-  while (list.length){
-    const last = out[out.length - 1];
-    let best = 0;
-    list.forEach((d, i) => { if (km(last, d) < km(last, list[best])) best = i; });
-    out.push(list.splice(best, 1)[0]);
+// 코스 편집: 순서 이동·빼기·가까운 순 정렬·복사·비우기
+document.addEventListener('click', async e => {
+  const t = e.target;
+  if (t.id === 'emptyReset'){ $('q').value = ''; ['fTheme', 'fRegion', 'fVisit'].forEach(id => $(id).value = ''); return renderCards(); }
+  const up = t.closest('[data-cup]'), dn = t.closest('[data-cdown]'), del = t.closest('[data-cdel]');
+  if (up || dn){
+    const i = +(up ? up.dataset.cup : dn.dataset.cdown), j = up ? i - 1 : i + 1;
+    [curCourse[i], curCourse[j]] = [curCourse[j], curCourse[i]]; return renderCourse();
   }
-  favs = out.map(d => d.id); saveFavs(); renderCourse();
-};
-// 코스: 텍스트로 복사
-$('copyCourse').onclick = async () => {
-  const list = favs.map(byId).filter(Boolean);
-  if (!list.length) return alert('아직 찜한 곳이 없어요.');
-  const txt = '나의 제주 답사 코스\n' + list.map((d, i) => `${i + 1}. ${d.name} (${d.addr})`).join('\n') + '\n' + $('courseInfo').textContent;
-  try { await navigator.clipboard.writeText(txt); $('copyCourse').textContent = '복사됨 ✓'; setTimeout(() => $('copyCourse').textContent = '복사', 1500); }
-  catch { prompt('아래 내용을 복사하세요', txt); }
-};
-document.addEventListener('click', e => { if (e.target.id === 'emptyReset') $('reset').click(); });
-$('favOnly').addEventListener('input', apply);
-$('map').addEventListener('click', e => { const c = e.target.closest('circle'); if (c) openDetail(c.dataset.id); });
-$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeDetail(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
-['q', 'fCat', 'fDir', 'fRegion'].forEach(id => $(id).addEventListener('input', apply));
-$('reset').onclick = () => { $('q').value = ''; ['fCat', 'fDir', 'fRegion'].forEach(id => $(id).value = ''); apply(); };
-// 첫 방문 사용법 안내 (닫으면 기억)
-const seenGuide = () => { try { return localStorage.getItem('jejuGuideSeen') === '1'; } catch (e) { return false; } };
-$('guide').hidden = seenGuide();
-$('closeGuide').onclick = () => { $('guide').hidden = true; try { localStorage.setItem('jejuGuideSeen', '1'); } catch (e) {} };
-$('showGuide').onclick = () => { $('guide').hidden = false; $('guide').scrollIntoView({behavior: 'smooth'}); };
-renderCourse();
-apply();
+  if (del){ curCourse = curCourse.filter(d => d.id !== del.dataset.cdel); return renderCourse(); }
+  if (t.closest('[data-csort]')){
+    if (curCourse.length < 3) return;
+    const left = curCourse.slice(1), out = [curCourse[0]];
+    while (left.length){
+      const last = out[out.length - 1]; let best = 0;
+      left.forEach((d, i) => { if (hav(last, d) < hav(last, left[best])) best = i; });
+      out.push(left.splice(best, 1)[0]);
+    }
+    curCourse = out; return renderCourse();
+  }
+  if (t.closest('[data-cclear]')){ if (curCourse.length && confirm('코스를 모두 비울까요?')){ curCourse = []; renderCourse(); } return; }
+  const cp = t.closest('[data-ccopy]');
+  if (cp){
+    const txt = '우리 가족 제주 역사 탐방 코스\n' + curCourse.map((d, i) => `${i + 1}. ${d.name} (${d.addr})`).join('\n') + '\n' + document.querySelector('#coursePanel .sum').innerText.replace(/\n/g, ' · ');
+    try { await navigator.clipboard.writeText(txt); cp.textContent = '복사됨 ✓'; setTimeout(() => cp.textContent = '코스 복사', 1500); }
+    catch { prompt('아래 내용을 복사하세요', txt); }
+  }
+});
+$('resetStamp').onclick = () => { if (visited.length && confirm('스탬프를 모두 지울까요?')){ visited = []; store.set('familyVisited', visited); renderCards(); renderStamps(); if (curCourse.length) renderCourse(); } };
+
+// 이전에 만든 코스 복원
+curCourse = store.get('familyCourse', []).map(byId).filter(d => d && d.lat);
+if (curCourse.length) renderCourse();
+renderCards(); renderStamps();
 })();
 </script>
 </body>
