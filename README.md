@@ -22,32 +22,3 @@
 
 
 
-## Vercel 배포
-
-저장소 루트가 그대로 배포 단위입니다.
-
-```
-api/places.js        서버리스 함수 (GET /api/places) — 공공데이터 API 호출·병합
-lib/places.js        API 호출·병합 로직 (로컬 server.js 와 공유)
-public/family.html   가족 탐방 화면  → 사이트 첫 화면(/)
-public/index.html    조회 화면       → /index.html
-public/data/         API 실패 시 쓰는 1단계 파일 데이터 (연습 모드)
-vercel.json          정적 폴더(public), 첫 화면 연결, 함수 제한 시간
-server.js            로컬 개발용 서버 (`node server.js`)
-```
-
-Vercel 프로젝트 설정 → Settings → Environment Variables 에 아래 네 개를 등록한 뒤 Redeploy 하세요. (Framework Preset 은 Other, Root Directory 는 저장소 루트)
-
-- `JEJU_CULTURE_INFO_KEY`, `JEJU_CULTURE_LOCATION_KEY` : 인증키
-- `JEJU_CULTURE_INFO_URL`, `JEJU_CULTURE_LOCATION_URL` : 각 API 요청주소(키 제외)
-
-등록 전이거나 API 가 실패하면 화면에 "연습 모드"가 표시되고 1단계 파일 데이터가 대신 보입니다.
-`양혁준2_단계/` 폴더에는 처음 만든 파일 방식 버전과 원본 CSV 가 있습니다.
-
-## 가족 탐방 화면(배포 첫 화면)에 합친 조회 화면 기능
-
-`public/family.html` 에 조회 화면의 기능을 더했습니다.
-
-- 코스 편집: ▲▼ 순서 이동, ✕ 빼기, "가까운 순 정렬", "코스 복사", "비우기", 새로고침해도 코스 유지
-- 장소 둘러보기: "내 위치에서 가까운 순" 정렬(거리 표시), 검색어 강조, 결과 없음 안내와 초기화 버튼
-- 지도: 테마별 핀 색상과 범례(누르면 그 테마만 필터), 검색·필터에 걸린 장소만 핀으로 표시
