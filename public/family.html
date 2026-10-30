@@ -69,6 +69,19 @@ ol.course li{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(-
 .sheet details{margin-top:12px;font-size:14px}
 .sheet details div{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:10px;margin-top:6px}
 .quiet{background:#fff3cd;color:#5c4400;border-radius:10px;padding:8px 12px;font-size:13.5px;margin-top:10px}
+[hidden]{display:none!important}
+mark{background:#ffe066;color:#222;border-radius:3px;padding:0 1px}
+.dist{font-size:12px;color:var(--accent2);font-weight:700}
+.pinlegend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pinlegend button{font:inherit;font-size:12px;display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--ink);cursor:pointer}
+.pinlegend button.on{border-color:var(--accent);background:var(--soft)}
+.pinlegend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ctl .btn{font-size:13px;padding:5px 11px;border-radius:8px}
+.mv{flex:none;display:flex;flex-direction:column;gap:2px}
+.mv button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:5px;font-size:10px;line-height:1;padding:3px 6px;cursor:pointer}
+.mv button:disabled{opacity:.35;cursor:default}
+.emptybox{grid-column:1/-1;text-align:center;color:var(--sub);padding:24px 8px}
 a{color:var(--accent2)}
 footer{text-align:center;color:var(--sub);font-size:12.5px;padding:20px 16px 40px}
 @media print{nav,.hero,#browse,#stamps,#tips,.noprint,footer{display:none!important}#map{height:300px}section{padding:8px}}
@@ -101,6 +114,7 @@ footer{text-align:center;color:var(--sub);font-size:12.5px;padding:20px 16px 40p
     <div class="box" id="coursePanel"><p class="leg">위에서 "코스 만들기"를 눌러 주세요.</p></div>
     <div>
       <div id="map"></div>
+      <div class="pinlegend" id="pinLegend" title="누르면 그 테마만 보여요"></div>
       <div class="leg" id="nomap" hidden>지도를 불러오지 못했어요(인터넷 연결 필요). 코스 목록은 그대로 볼 수 있어요.</div>
     </div>
   </div>
@@ -114,6 +128,7 @@ footer{text-align:center;color:var(--sub);font-size:12.5px;padding:20px 16px 40p
     <label>테마<select id="fTheme"></select></label>
     <label>지역<select id="fRegion"><option value="">전체</option><option>제주시</option><option>서귀포시</option></select></label>
     <label>보기<select id="fVisit"><option value="">전체</option><option value="no">아직 안 가 본 곳</option><option value="yes">다녀온 곳</option></select></label>
+    <label>정렬<select id="fSort"><option value="name">이름순</option><option value="near">내 위치에서 가까운 순</option></select></label>
   </div>
   <div class="leg" id="count" style="margin-top:8px"></div>
   <div class="cards" id="cards"></div>
@@ -250,13 +265,20 @@ $('oTheme').innerHTML = themeOpts; $('fTheme').innerHTML = themeOpts;
 
 // ---------- 지도
 let map = null, layer = null, routeLayer = null;
+const mk = {};
+const THEME_COLOR = {nature: '#2f9e8f', life: '#e8743b', story: '#7048e8', town: '#1c7ed6'};
+$('pinLegend').innerHTML = Object.entries(THEMES).map(([k, v]) => `<button data-theme="${k}"><i style="background:${THEME_COLOR[k]}"></i>${v.label}</button>`).join('');
+$('pinLegend').addEventListener('click', e => {
+  const b = e.target.closest('[data-theme]'); if (!b) return;
+  $('fTheme').value = $('fTheme').value === b.dataset.theme ? '' : b.dataset.theme; renderCards();
+});
 if (window.L){
   map = L.map('map').setView([33.38, 126.55], 9);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '&copy; OpenStreetMap'}).addTo(map);
   layer = L.layerGroup().addTo(map); routeLayer = L.layerGroup().addTo(map);
   DATA.filter(d => d.lat).forEach(d => {
-    L.circleMarker([d.lat, d.lon], {radius: 5, color: '#fff', weight: 1, fillColor: '#2f9e8f', fillOpacity: .8})
-      .bindPopup(`<b>${esc(d.name)}</b><br><a href="#" data-open="${esc(d.id)}">아이와 함께 읽기</a>`).addTo(layer);
+    mk[d.id] = L.circleMarker([d.lat, d.lon], {radius: 6, color: '#fff', weight: 1, fillColor: THEME_COLOR[d.theme], fillOpacity: .9})
+      .bindPopup(`<b>${esc(d.name)}</b><br>${esc(d.line)}<br><a href="#" data-open="${esc(d.id)}">아이와 함께 읽기</a>`).addTo(layer);
   });
   map.on('popupopen', e => e.popup.getElement().querySelectorAll('[data-open]').forEach(a => a.onclick = ev => { ev.preventDefault(); openDetail(a.dataset.open); }));
 } else { $('map').hidden = true; $('nomap').hidden = false; }
@@ -292,6 +314,11 @@ function makeCourse(){
 }
 const STAY = 40, KMH = 40, ROAD = 1.4;
 function renderCourse(){
+  store.set('familyCourse', curCourse.map(d => d.id));
+  if (!curCourse.length){
+    $('coursePanel').innerHTML = '<p class="leg">위에서 "코스 만들기"를 누르거나, 장소 카드의 "코스에 넣기"로 직접 만들어 보세요.</p>';
+    drawRoute(); return;
+  }
   let dist = 0, drive = 0;
   const legs = curCourse.map((d, i) => {
     if (!i) return null;
@@ -301,6 +328,7 @@ function renderCourse(){
   const total = drive + STAY * curCourse.length;
   const hrs = Math.floor(total / 60), mins = total % 60;
   $('coursePanel').innerHTML = `
+    <div class="ctl"><button class="btn alt" data-csort title="첫 곳에서 시작해 가까운 곳 순서로 다시 정해요">가까운 순 정렬</button><button class="btn alt" data-ccopy>코스 복사</button><button class="btn alt" data-cclear>비우기</button></div>
     <div class="sum"><span>📍 ${curCourse.length}곳</span><span>🚗 이동 약 ${dist.toFixed(0)}km (${drive}분)</span><span>⏱️ 전체 약 ${hrs ? hrs + '시간 ' : ''}${mins}분</span></div>
     <ol class="course">${curCourse.map((d, i) => `
       <li>
@@ -311,6 +339,7 @@ function renderCourse(){
           <small>${THEMES[d.theme].label} · ${esc(d.addr)}</small>
           <small>${esc(d.line)}</small>
         </div>
+        <div class="mv"><button data-cup="${i}" ${i === 0 ? 'disabled' : ''} title="위로">▲</button><button data-cdown="${i}" ${i === curCourse.length - 1 ? 'disabled' : ''} title="아래로">▼</button><button data-cdel="${esc(d.id)}" title="코스에서 빼기">✕</button></div>
         <button class="stamp ${isVisited(d.id) ? 'on' : ''}" style="position:static;flex:none" data-visit="${esc(d.id)}" title="다녀왔어요">✔</button>
       </li>`).join('')}</ol>
     <p class="leg">※ 이동 시간은 직선거리 × 1.4배 / 시속 40km, 장소당 ${STAY}분 머무는 것으로 계산한 대략의 값이에요.</p>`;
@@ -330,22 +359,42 @@ function drawRoute(){
 }
 
 // ---------- 카드 목록
+let userPos = null, curQ = '';
+const distTo = d => userPos && d.lat ? hav(userPos, d) : Infinity;
+// 검색어를 <mark>로 강조 (텍스트는 항상 이스케이프)
+function hl(s){
+  s = String(s ?? '');
+  if (!curQ) return esc(s);
+  const re = new RegExp(curQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  let out = '', last = 0;
+  for (const m of s.matchAll(re)){ out += esc(s.slice(last, m.index)) + '<mark>' + esc(m[0]) + '</mark>'; last = m.index + m[0].length; }
+  return out + esc(s.slice(last));
+}
 function renderCards(){
   const q = $('q').value.trim().toLowerCase(), th = $('fTheme').value, rg = $('fRegion').value, v = $('fVisit').value;
+  curQ = q;
+  const near = $('fSort').value === 'near' && userPos;
   const list = DATA.filter(d => (!th || d.theme === th) && (!rg || d.region === rg) &&
     (!v || (v === 'yes') === isVisited(d.id)) &&
     (!q || [d.name, d.title, d.addr, d.topic, d.line].join(' ').toLowerCase().includes(q)))
-    .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    .sort(near ? (a, b) => distTo(a) - distTo(b) : (a, b) => a.name.localeCompare(b.name, 'ko'));
   $('count').textContent = `${list.length}곳`;
+  document.querySelectorAll('#pinLegend button').forEach(b => b.classList.toggle('on', b.dataset.theme === th));
+  // 검색·필터에 걸린 장소만 지도에 핀으로 표시
+  if (map){
+    const on = new Set(list.map(d => d.id));
+    for (const id in mk){ if (on.has(id)) layer.addLayer(mk[id]); else layer.removeLayer(mk[id]); }
+  }
   $('cards').innerHTML = list.map(d => `
     <div class="card">
       <button class="stamp ${isVisited(d.id) ? 'on' : ''}" data-visit="${esc(d.id)}" title="다녀왔어요">✔</button>
       <span class="theme">${THEMES[d.theme].label}</span>
-      <h3>${esc(d.name)}</h3>
-      <p>${esc(d.line)}</p>
-      <p class="leg">${esc(d.addr)}</p>
+      <h3>${hl(d.name)}</h3>
+      <p>${hl(d.line)}</p>
+      <p class="leg">${hl(d.addr)}</p>
+      ${near && d.lat ? `<div class="dist">📍 내 위치에서 약 ${distTo(d).toFixed(1)}km</div>` : ''}
       <div class="row"><button class="btn sm" data-open="${esc(d.id)}">함께 읽기</button><button class="btn alt sm" data-add="${esc(d.id)}">코스에 넣기</button></div>
-    </div>`).join('') || '<p class="leg">조건에 맞는 장소가 없어요.</p>';
+    </div>`).join('') || `<div class="emptybox">${curQ ? `‘${esc(curQ)}’에 맞는 장소가 없어요.` : '조건에 맞는 장소가 없어요.'}<br>검색어를 줄이거나 필터를 바꿔 보세요.<br><button class="btn alt sm" id="emptyReset" style="margin-top:8px">검색·필터 초기화</button></div>`;
 }
 
 // ---------- 상세
@@ -393,8 +442,49 @@ $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeDe
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 $('make').onclick = makeCourse; $('again').onclick = makeCourse;
 ['q', 'fTheme', 'fRegion', 'fVisit'].forEach(id => $(id).addEventListener('input', renderCards));
+$('fSort').addEventListener('input', () => {
+  if ($('fSort').value !== 'near' || userPos) return renderCards();
+  const back = () => { $('fSort').value = 'name'; renderCards(); };
+  if (!navigator.geolocation){ alert('이 브라우저는 위치 기능을 지원하지 않아요.'); return back(); }
+  navigator.geolocation.getCurrentPosition(
+    p => { userPos = {lat: p.coords.latitude, lon: p.coords.longitude}; renderCards(); },
+    () => { alert('내 위치를 가져오지 못했어요. 브라우저의 위치 권한을 확인해 주세요.'); back(); },
+    {timeout: 10000}
+  );
+});
+// 코스 편집: 순서 이동·빼기·가까운 순 정렬·복사·비우기
+document.addEventListener('click', async e => {
+  const t = e.target;
+  if (t.id === 'emptyReset'){ $('q').value = ''; ['fTheme', 'fRegion', 'fVisit'].forEach(id => $(id).value = ''); return renderCards(); }
+  const up = t.closest('[data-cup]'), dn = t.closest('[data-cdown]'), del = t.closest('[data-cdel]');
+  if (up || dn){
+    const i = +(up ? up.dataset.cup : dn.dataset.cdown), j = up ? i - 1 : i + 1;
+    [curCourse[i], curCourse[j]] = [curCourse[j], curCourse[i]]; return renderCourse();
+  }
+  if (del){ curCourse = curCourse.filter(d => d.id !== del.dataset.cdel); return renderCourse(); }
+  if (t.closest('[data-csort]')){
+    if (curCourse.length < 3) return;
+    const left = curCourse.slice(1), out = [curCourse[0]];
+    while (left.length){
+      const last = out[out.length - 1]; let best = 0;
+      left.forEach((d, i) => { if (hav(last, d) < hav(last, left[best])) best = i; });
+      out.push(left.splice(best, 1)[0]);
+    }
+    curCourse = out; return renderCourse();
+  }
+  if (t.closest('[data-cclear]')){ if (curCourse.length && confirm('코스를 모두 비울까요?')){ curCourse = []; renderCourse(); } return; }
+  const cp = t.closest('[data-ccopy]');
+  if (cp){
+    const txt = '우리 가족 제주 역사 탐방 코스\n' + curCourse.map((d, i) => `${i + 1}. ${d.name} (${d.addr})`).join('\n') + '\n' + document.querySelector('#coursePanel .sum').innerText.replace(/\n/g, ' · ');
+    try { await navigator.clipboard.writeText(txt); cp.textContent = '복사됨 ✓'; setTimeout(() => cp.textContent = '코스 복사', 1500); }
+    catch { prompt('아래 내용을 복사하세요', txt); }
+  }
+});
 $('resetStamp').onclick = () => { if (visited.length && confirm('스탬프를 모두 지울까요?')){ visited = []; store.set('familyVisited', visited); renderCards(); renderStamps(); if (curCourse.length) renderCourse(); } };
 
+// 이전에 만든 코스 복원
+curCourse = store.get('familyCourse', []).map(byId).filter(d => d && d.lat);
+if (curCourse.length) renderCourse();
 renderCards(); renderStamps();
 })();
 </script>
