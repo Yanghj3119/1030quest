@@ -1,4 +1,3 @@
 {
-  "outputDirectory": "public",
-  "functions": { "api/places.js": { "maxDuration": 30 } }
+  "outputDirectory": "public"
 }
